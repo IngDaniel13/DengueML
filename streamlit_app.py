@@ -392,7 +392,7 @@ st.markdown("""
 # ──────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Análisis Histórico",
-    "🔮 Evaluar Sintomas",
+    "🩺 Evaluar Sintomas",
     "📈 Proyección Futura",
     "📋 Métricas del Modelo"
 ])
