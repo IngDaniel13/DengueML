@@ -801,10 +801,10 @@ with tab2:
                 st.write("  _Ninguno seleccionado_")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 3: PROYECCIÓN FUTURA (GRÁFICOS PLOTLY)
+# TAB 3: PROYECCIÓN FUTURA 
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown('<div class="section-title">📈 Proyección de Casos - Próximos 5 Años</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📈 Predicción de Casos - Próximos 5 Años</div>', unsafe_allow_html=True)
     
     region_tab2 = st.radio("Región:", ["Cesar", "Valledupar"], horizontal=True)
     
@@ -910,7 +910,7 @@ with tab3:
             "graves_proyectados": "{:,.0f}"
         }), use_container_width=True)
         
-        st.caption("⚠️ Las proyecciones se basan en tendencia histórica de los últimos 3 años. No constituyen pronóstico epidemiológico oficial.")
+        st.caption("⚠️ Las predicciones se basan en tendencia histórica de los últimos 6 años. No constituyen pronóstico epidemiológico oficial.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4: MÉTRICAS DEL MODELO (GRÁFICOS PLOTLY)
