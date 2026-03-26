@@ -352,7 +352,7 @@ apply_theme_css()
 
 # SIDEBAR CON BOTÓN DE CAMBIO DE TEMA
 with st.sidebar:
-    st.image("mosquito2.jpg",
+    st.image("mosquito3.png",
              use_container_width=True)
     st.markdown("## Apariencia")
     
@@ -618,6 +618,7 @@ with tab1:
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2: PREDICCIÓN INDIVIDUAL
+# ══════════════════════════════════════════════════════════════════════════════
 
 with tab2:
     st.markdown('<div class="section-title">🩺 Predictor de Dengue Grave</div>', unsafe_allow_html=True)
@@ -675,12 +676,40 @@ with tab2:
                 symptom_values[feat] = st.checkbox(symptom_labels[feat], value=False)
         
         st.markdown("---")
-        threshold = st.slider("🎚️ Threshold de decisión", 0.2, 0.8, 0.4, 0.05,
-                              help="Un threshold menor aumenta la sensibilidad (más recalls, más falsos positivos).")
+        
+        # ============================================================
+        # VALIDACIÓN: Verificar si hay síntomas seleccionados
+        # ============================================================
+        sintomas_seleccionados = [k for k, v in symptom_values.items() if v]
+        hay_sintomas = len(sintomas_seleccionados) > 0
+        
+        # Mostrar advertencia si no hay síntomas
+        if not hay_sintomas:
+            st.warning("⚠️ Debes seleccionar al menos un síntoma clínico para realizar la predicción.")
+        # ============================================================
+        
+        # ============================================================
+        # THRESHOLD FIJADO POR DEFECTO
+        # ============================================================
+        threshold = 0.45
+        
+        # Opción avanzada oculta para profesionales de salud
+        with st.expander("⚙️ Configuración avanzada (para profesionales de salud)"):
+            st.markdown("Ajusta la sensibilidad del modelo:")
+            threshold = st.slider("Threshold de decisión", 0.20, 0.80, threshold, 0.05,
+                                  help="Valor más bajo = más alertas (mayor sensibilidad). Valor más alto = menos falsas alarmas (mayor especificidad).")
+            st.caption(f"✅ Threshold actual: **{threshold:.2f}**")
+        # ============================================================
         
         col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
         with col_btn2:
-            predecir = st.button("🔍 Predecir Riesgo de Dengue Grave", type="primary", use_container_width=True)
+            # Botón deshabilitado si no hay síntomas
+            predecir = st.button(
+                "🔍 Predecir Riesgo de Dengue Grave", 
+                type="primary", 
+                use_container_width=True,
+                disabled=not hay_sintomas
+            )
         
         if predecir:
             row = {}
@@ -711,7 +740,6 @@ with tab2:
             
             # Medidor tipo gauge con Plotly
             colors = get_theme_colors()
-            color_gauge = COLOR_GRAVE if pred == 1 else "#28a745"
             
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number",
@@ -720,7 +748,7 @@ with tab2:
                 domain={'x': [0, 1], 'y': [0, 1]},
                 gauge={
                     'axis': {'range': [0, 100], 'tickwidth': 1},
-                    'bar': {'color': color_gauge},
+                    'bar': {'color': "#2563eb"},  # 🔵 AZUL FIJO
                     'steps': [
                         {'range': [0, 20], 'color': "#22c55e"},
                         {'range': [20, 50], 'color': "#f59e0b"},
@@ -747,7 +775,7 @@ with tab2:
                     <i>Se recomienda hospitalización y monitoreo estrecho.</i>
                 </div>
                 """, unsafe_allow_html=True)
-            elif prob >= 0.25:
+            elif prob >= 0.36:
                 st.markdown(f"""
                 <div class='warning-box'>
                     <b>⚠️ Riesgo Moderado</b><br>
