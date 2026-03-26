@@ -352,7 +352,7 @@ apply_theme_css()
 
 # SIDEBAR CON BOTÓN DE CAMBIO DE TEMA
 with st.sidebar:
-    st.image("mosquito.jpg",
+    st.image("mosquito2.jpg",
              use_container_width=True)
     st.markdown("## Apariencia")
     
