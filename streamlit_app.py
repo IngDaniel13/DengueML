@@ -352,7 +352,7 @@ apply_theme_css()
 
 # SIDEBAR CON BOTÓN DE CAMBIO DE TEMA
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Aedes_aegypti_CDC-Gathany.jpg/320px-Aedes_aegypti_CDC-Gathany.jpg",
+    st.image("mosquito.jpg",
              use_container_width=True)
     st.markdown("## Apariencia")
     
@@ -645,23 +645,23 @@ with tab2:
         with col2:
             sexo = st.selectbox("Sexo", ["Femenino", "Masculino"])
         with col3:
-            estrato = st.selectbox("Estrato", [1, 2, 3, 4, 5, 6], index=1)
+            estrato = st.selectbox("Estrato", [1, 2, 3, 4, 5, 6], index=0)
         
         st.markdown("### 🌡️ Síntomas Clínicos")
         st.caption("Selecciona los síntomas presentes en el paciente")
         
         symptom_labels = {
-            "fiebre": "🌡️ Fiebre",
-            "cefalea": "🤕 Cefalea",
-            "dolrretroo": "👁️ Dolor retro-ocular",
-            "malgias": "💪 Mialgias",
-            "artralgia": "🦴 Artralgias",
-            "erupcionr": "🔴 Erupción cutánea",
-            "dolor_abdo": "🫃 Dolor abdominal",
-            "vomito": "🤢 Vómito",
-            "diarrea": "🚽 Diarrea",
-            "somnolenci": "😴 Somnolencia",
-            "hepatomeg": "🫁 Hepatomegalia",
+            "fiebre": " Fiebre",
+            "cefalea": " Cefalea",
+            "dolrretroo": " Dolor retro-ocular",
+            "malgias": " Mialgias",
+            "artralgia": " Artralgias",
+            "erupcionr": " Erupción cutánea",
+            "dolor_abdo": " Dolor abdominal",
+            "vomito": " Vómito",
+            "diarrea": " Diarrea",
+            "somnolenci": " Somnolencia",
+            "hepatomeg": " Hepatomegalia",
         }
         
         col_s1, col_s2 = st.columns(2)
