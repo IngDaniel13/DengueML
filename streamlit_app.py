@@ -8,7 +8,6 @@ Requiere en la misma carpeta:
     predicciones_cesar.csv, predicciones_valledupar.csv
     metricas_modelos.csv
 """
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,6 +16,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import joblib
 import os
+from pdf_generator import generar_pdf_ricky, get_datos_historicos
+from datetime import datetime
+
 
 # CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
@@ -594,27 +596,54 @@ with tab1:
             st.plotly_chart(fig_sexo_grave, use_container_width=True, config={'displayModeBar': True})
     
     # Gráfico 5 - Porcentaje de graves por año
-    if not hist_anual.empty and "anio" in hist_anual.columns and "graves" in hist_anual.columns:
-        hist_anual["pct_graves_anual"] = (hist_anual["graves"] / hist_anual["total"] * 100).fillna(0)
-        fig_pct = go.Figure()
-        fig_pct.add_trace(go.Scatter(
-            x=hist_anual["anio"], y=hist_anual["pct_graves_anual"],
-            mode='lines+markers+text',
-            line=dict(color=COLOR_WARNING, width=2.5),
-            marker=dict(size=10),
-            text=hist_anual["pct_graves_anual"].round(1).astype(str) + '%',
-            textposition='top center',
-            name='% Dengue Grave',
-            hovertemplate="Año: %{x}<br>% Graves: %{y:.1f}%<extra></extra>"
-        ))
-        fig_pct.update_layout(
-            title='Porcentaje de Dengue Grave por Año',
-            xaxis_title='Año',
-            yaxis_title='% Dengue Grave',
-            height=400
-        )
-        fig_pct = configurar_grafica_tema(fig_pct, height=400)
-        st.plotly_chart(fig_pct, use_container_width=True, config={'scrollZoom': False, 'displayModeBar': True})
+        # if not hist_anual.empty and "anio" in hist_anual.columns and "graves" in hist_anual.columns:
+        #     hist_anual["pct_graves_anual"] = (hist_anual["graves"] / hist_anual["total"] * 100).fillna(0)
+        #     fig_pct = go.Figure()
+        #     fig_pct.add_trace(go.Scatter(
+        #         x=hist_anual["anio"], y=hist_anual["pct_graves_anual"],
+        #         mode='lines+markers+text',
+        #         line=dict(color=COLOR_WARNING, width=2.5),
+        #         marker=dict(size=10),
+        #         text=hist_anual["pct_graves_anual"].round(1).astype(str) + '%',
+        #         textposition='top center',
+        #         name='% Dengue Grave',
+        #         hovertemplate="Año: %{x}<br>% Graves: %{y:.1f}%<extra></extra>"
+        #     ))
+        #     fig_pct.update_layout(
+        #         title='Porcentaje de Dengue Grave por Año',
+        #         xaxis_title='Año',
+        #         yaxis_title='% Dengue Grave',
+        #         height=400
+        #     )
+        #     fig_pct = configurar_grafica_tema(fig_pct, height=400)
+        #     st.plotly_chart(fig_pct, use_container_width=True, config={'scrollZoom': False, 'displayModeBar': True})
+
+        st.markdown("---")
+        st.markdown("""
+        <div style="text-align:center; margin-top:20px; color:var(--text-secondary);">
+            <p style="margin-bottom:8px;">
+                🌐 Prefieres una vista más interactiva ¡Explora el dashboard completo en Power BI!
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="text-align:center; margin-top:20px;">
+            <a href="" target="_blank">
+                <button style="
+                    background-color:#FFD700;
+                    color:white;
+                    padding:12px 20px;
+                    border:none;
+                    border-radius:10px;
+                    cursor:pointer;
+                    font-size:16px;
+                ">
+                    🔗 Dashboard Interactivo (Power BI)
+                </button>
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2: PREDICCIÓN INDIVIDUAL
@@ -677,33 +706,17 @@ with tab2:
         
         st.markdown("---")
         
-        # ============================================================
         # VALIDACIÓN: Verificar si hay síntomas seleccionados
-        # ============================================================
-        sintomas_seleccionados = [k for k, v in symptom_values.items() if v]
-        hay_sintomas = len(sintomas_seleccionados) > 0
+        sintomas_seleccionados_validacion = [k for k, v in symptom_values.items() if v]
+        hay_sintomas = len(sintomas_seleccionados_validacion) > 0
         
-        # Mostrar advertencia si no hay síntomas
         if not hay_sintomas:
             st.warning("⚠️ Debes seleccionar al menos un síntoma clínico para realizar la predicción.")
-        # ============================================================
         
-        # ============================================================
-        # THRESHOLD FIJADO POR DEFECTO
-        # ============================================================
         threshold = 0.45
-        
-        # Opción avanzada oculta para profesionales de salud
-        with st.expander("⚙️ Configuración avanzada (para profesionales de salud)"):
-            st.markdown("Ajusta la sensibilidad del modelo:")
-            threshold = st.slider("Threshold de decisión", 0.20, 0.80, threshold, 0.05,
-                                  help="Valor más bajo = más alertas (mayor sensibilidad). Valor más alto = menos falsas alarmas (mayor especificidad).")
-            st.caption(f"✅ Threshold actual: **{threshold:.2f}**")
-        # ============================================================
         
         col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
         with col_btn2:
-            # Botón deshabilitado si no hay síntomas
             predecir = st.button(
                 "🔍 Predecir Riesgo de Dengue Grave", 
                 type="primary", 
@@ -720,27 +733,46 @@ with tab2:
                     row[feat] = edad
                 elif feat == "sexo_M" or feat == "sexo__M":
                     row[feat] = 1 if sexo == "Masculino" else 0
-                elif feat == "estrato":
-                    row[feat] = estrato
+                elif feat == "estrato" or feat == "estrato_":
+                    estrato_transformado = 1 / estrato
+                    row[feat] = estrato_transformado
                 else:
                     row[feat] = 0
             
             input_df = pd.DataFrame([row])
             input_df = input_df[features]
             
-            with st.expander("🔧 Debug - Input al modelo"):
-                st.write(input_df)
-            
             input_sc = scaler.transform(input_df)
-            prob = model.predict_proba(input_sc)[0][1]
+            prob_raw = model.predict_proba(input_sc)[0][1]
+
+            # AJUSTE POR ESTRATO
+            factor_estrato_dict = {
+                1: 1.00, 2: 0.95, 3: 0.90, 4: 0.85, 5: 0.80, 6: 0.75
+            }
+            sintomas_gravedad = ["dolor_abdo", "vomito", "somnolenci", "hepatomeg"]
+            prob_ajustada = prob_raw * factor_estrato_dict[estrato]
+            tiene_sintomas_graves = any(symptom_values.get(s, False) for s in sintomas_gravedad)
+            seguridad_aplicada = False
+
+            if tiene_sintomas_graves and prob_ajustada < 0.50:
+                prob_ajustada = 0.50
+                seguridad_aplicada = True
+
+            prob = max(0.01, min(0.99, prob_ajustada))
             pred = int(prob >= threshold)
+            
+            # MOSTRAR RESULTADOS (MEDIDOR Y ALERTA)
+            with st.expander("📊 Detalle clínico del cálculo"):
+                st.metric("Probabilidad base (síntomas)", f"{prob_raw:.1%}")
+                st.metric(f"Ajuste por estrato {estrato}", f"{factor_estrato_dict[estrato]:.2f}x")
+                if seguridad_aplicada:
+                    st.warning("🛡️ **Ajuste de seguridad clínica aplicado**")
+                st.metric("Probabilidad final", f"{prob:.1%}")
             
             st.markdown("---")
             st.markdown("## 📊 Resultado de la Evaluación")
             
-            # Medidor tipo gauge con Plotly
             colors = get_theme_colors()
-            
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=prob * 100,
@@ -748,7 +780,7 @@ with tab2:
                 domain={'x': [0, 1], 'y': [0, 1]},
                 gauge={
                     'axis': {'range': [0, 100], 'tickwidth': 1},
-                    'bar': {'color': "#2563eb"},  # 🔵 AZUL FIJO
+                    'bar': {'color': "#2563eb"},
                     'steps': [
                         {'range': [0, 20], 'color': "#22c55e"},
                         {'range': [20, 50], 'color': "#f59e0b"},
@@ -766,7 +798,6 @@ with tab2:
             fig_gauge = configurar_grafica_tema(fig_gauge, height=300)
             st.plotly_chart(fig_gauge, use_container_width=True, config={'displayModeBar': True})
             
-            # Resultado textual
             if pred == 1:
                 st.markdown(f"""
                 <div class='danger-box'>
@@ -792,14 +823,155 @@ with tab2:
                 </div>
                 """, unsafe_allow_html=True)
             
-            st.markdown("**Síntomas reportados:**")
-            activos = [symptom_labels[k] for k, v in symptom_values.items() if v and k in symptom_labels]
-            if activos:
-                for s in activos:
-                    st.write(f"  ✅ {s}")
-            else:
-                st.write("  _Ninguno seleccionado_")
+            # st.markdown("**Síntomas reportados:**")
+            # symptom_labels_inv = {
+            #     "fiebre": "Fiebre", "cefalea": "Cefalea", "dolrretroo": "Dolor retro-ocular",
+            #     "malgias": "Mialgias", "artralgia": "Artralgias", "erupcionr": "Erupción cutánea",
+            #     "dolor_abdo": "Dolor abdominal", "vomito": "Vómito", "diarrea": "Diarrea",
+            #     "somnolenci": "Somnolencia", "hepatomeg": "Hepatomegalia",
+            # }
+            # activos = [symptom_labels_inv.get(k, k) for k, v in symptom_values.items() if v]
+            # if activos:
+            #     for s in activos:
+            #         st.write(f"  ✅ {s}")
+            # else:
+            #     st.write("  _Ninguno seleccionado_")
 
+            # ============================================================
+            # INFORME CLINICO (aparece automáticamente después de la predicción)
+            # ============================================================
+            
+            st.markdown("---")
+            st.markdown("### Informe Clínico")
+            
+            # Determinar nivel de riesgo
+            if prob >= 0.70:
+                nivel_riesgo = "ALTO"
+                color_riesgo = "#ef4444"
+                icono_riesgo = "🔴"
+            elif prob >= 0.40:
+                nivel_riesgo = "MODERADO"
+                color_riesgo = "#f59e0b"
+                icono_riesgo = "🟡"
+            else:
+                nivel_riesgo = "BAJO"
+                color_riesgo = "#22c55e"
+                icono_riesgo = "🟢"
+            
+            symptom_labels_inv_full = {
+                "fiebre": "Fiebre", "cefalea": "Cefalea", "dolrretroo": "Dolor retro-ocular",
+                "malgias": "Mialgias", "artralgia": "Artralgias", "erupcionr": "Erupción cutánea",
+                "dolor_abdo": "Dolor abdominal", "vomito": "Vómito", "diarrea": "Diarrea",
+                "somnolenci": "Somnolencia", "hepatomeg": "Hepatomegalia",
+            }
+            sintomas_texto = [symptom_labels_inv_full.get(k, k) for k, v in symptom_values.items() if v]
+            datos_historicos_local = get_datos_historicos()
+            
+            st.markdown(f"""
+            <div style='
+                background: linear-gradient(135deg, {color_riesgo}22, {color_riesgo}11);
+                border: 2px solid {color_riesgo};
+                border-radius: 15px;
+                padding: 20px;
+                margin: 10px 0;
+            '>
+                <h2 style='text-align: center; margin:0;'>
+                    {icono_riesgo} RIESGO {nivel_riesgo} - {prob:.1%}
+                </h2>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            with st.expander("👤 1. INFORMACIÓN DEL PACIENTE", expanded=True):
+                col_i1, col_i2, col_i3 = st.columns(3)
+                col_i1.metric("Edad", f"{edad} años")
+                col_i2.metric("Sexo", sexo)
+                col_i3.metric("Estrato", estrato)
+                if estrato <= 2:
+                    st.info("📌 **Estrato de alta incidencia histórica** - Mayor riesgo poblacional")
+                elif estrato <= 4:
+                    st.info("📌 **Estrato de incidencia moderada** - Riesgo poblacional medio")
+                else:
+                    st.info("📌 **Estrato de menor incidencia** - Menor riesgo poblacional")
+            
+            with st.expander("🌡️ 2. SÍNTOMAS REPORTADOS", expanded=True):
+                if sintomas_texto:
+                    cols = st.columns(2)
+                    for i, s in enumerate(sintomas_texto):
+                        cols[i % 2].markdown(f"✅ {s}")
+                    signos_alarma = ["Dolor abdominal", "Vómito", "Somnolencia", "Hepatomegalia"]
+                    alarma_presentes = [s for s in sintomas_texto if s in signos_alarma]
+                    if alarma_presentes:
+                        st.warning(f"⚠️ **SIGNOS DE ALARMA DETECTADOS:** {', '.join(alarma_presentes)}")
+                else:
+                    st.write("_No se reportaron síntomas clínicos_")
+            
+            with st.expander("📊 3. RESULTADO DE LA EVALUACIÓN", expanded=True):
+                col_r1, col_r2, col_r3 = st.columns(3)
+                col_r1.metric("Probabilidad base", f"{prob_raw:.1%}")
+                col_r2.metric(f"Ajuste estrato {estrato}", f"{factor_estrato_dict[estrato]:.2f}x")
+                col_r3.metric("Probabilidad final", f"{prob:.1%}")
+                
+                if nivel_riesgo == "ALTO":
+                    st.error("**🔴 ALTO RIESGO - Hospitalización inmediata**")
+                elif nivel_riesgo == "MODERADO":
+                    st.warning("**🟡 RIESGO MODERADO - Observación clínica**")
+                else:
+                    st.success("**🟢 BAJO RIESGO - Manejo ambulatorio**")
+            
+            with st.expander("📈 4. CONTEXTO EPIDEMIOLÓGICO", expanded=False):
+                casos_data = pd.DataFrame({
+                    'Estrato': [f'E{i}' for i in range(1, 7)],
+                    'Casos': [datos_historicos_local['casos_por_estrato'][i] for i in range(1, 7)]
+                })
+                fig_hist = px.bar(casos_data, x='Estrato', y='Casos', title='Casos históricos por estrato', color='Casos', color_continuous_scale='Reds')
+                fig_hist.update_layout(height=350)
+                fig_hist = configurar_grafica_tema(fig_hist, height=350)
+                st.plotly_chart(fig_hist, use_container_width=True, config={'displayModeBar': False})
+            
+            with st.expander("📋 5. RECOMENDACIONES", expanded=False):
+                st.markdown("""
+                - Mantener hidratación adecuada
+                - Evitar automedicación con antiinflamatorios
+                - Acudir a control médico si aparecen signos de alarma
+                - Reposo relativo durante la fase aguda
+                """)
+            
+            # ============================================================
+            # BOTON DE EXPORTACION PDF
+            # ============================================================
+            
+            st.markdown("---")
+            st.markdown("### Exportar Informe")
+            
+            import io
+            
+            # Generar PDF con contenido clinico rico
+            pdf = generar_pdf_ricky(
+                paciente_info={'edad': edad, 'sexo': sexo, 'estrato': estrato},
+                sintomas_seleccionados=sintomas_texto,
+                resultados={
+                    'probabilidad': prob,
+                    'riesgo': nivel_riesgo,
+                    'prob_base': prob_raw,
+                    'factor_estrato': factor_estrato_dict[estrato]
+                },
+                datos_historicos=datos_historicos_local
+            )
+            
+            # Guardar en memoria y descargar
+            pdf_output = pdf.output(dest='S').encode('latin1')
+            buffer = io.BytesIO()
+            buffer.write(pdf_output)
+            buffer.seek(0)
+            
+            st.download_button(
+                label="Descargar Informe (PDF)",
+                data=buffer,
+                file_name=f"informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key="download_pdf_btn"
+            )
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3: PROYECCIÓN FUTURA 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -965,3 +1137,6 @@ with tab4:
         - **F1**: Balance entre Recall y Precision.
         - **ROC-AUC**: Capacidad discriminativa global del modelo.
         """)
+
+    st.markdown("---")
+    
