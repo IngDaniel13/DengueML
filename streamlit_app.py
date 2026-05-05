@@ -629,7 +629,7 @@ with tab1:
 
         st.markdown("""
         <div style="text-align:center; margin-top:20px;">
-            <a href="" target="_blank">
+            <a href="https://app.powerbi.com/view?r=eyJrIjoiMDJiYjY3N2UtZWQ5Yi00Mzc1LTk2MzAtMTBiNWY0N2NmZTU1IiwidCI6IjlhZGFkZjM3LTZkNjgtNDEyZC04ODM5LTVjY2NjZWM2NzFiMiIsImMiOjR9" target="_blank">
                 <button style="
                     background-color:#FFD700;
                     color:white;
