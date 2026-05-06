@@ -375,7 +375,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 📊 Datos")
     st.markdown("Fuente: SIVIGILA (Datos históricos dengue - Cesar)")
-    st.markdown("Última actualización: 2025")
+    st.markdown("Última actualización: 2026")
     st.markdown("---")
     st.caption("🏥 Uso exclusivo para apoyo diagnóstico.\nNo reemplaza criterio médico.")
 
@@ -403,7 +403,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 1: ANÁLISIS HISTÓRICO (GRÁFICOS PLOTLY)
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown('<div class="section-title"> Análisis Histórico de Casos 2018-2025</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"> Análisis Histórico de Casos 2018-2026</div>', unsafe_allow_html=True)
     
     region_tab = st.radio("Región:", ["Cesar (Todo el departamento)", "Valledupar"], horizontal=True)
     archivo_anual = "historico_anual.csv" if "Cesar" in region_tab else "historico_anual_valledupar.csv"
