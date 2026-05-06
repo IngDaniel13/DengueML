@@ -131,7 +131,7 @@ def generar_pdf_ricky(paciente_info, sintomas_seleccionados, resultados, datos_h
     # 4. CONTEXTO EPIDEMIOLOGICO
     # ============================================================
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 8, '4. CONTEXTO EPIDEMIOLOGICO REGIONAL EN LOS ÚLTIMOS AÑOS(2018 - 2025)', 0, 1, 'L')
+    pdf.cell(0, 8, '4. CONTEXTO EPIDEMIOLOGICO REGIONAL EN LOS ÚLTIMOS AÑOS(2018 - 2026)', 0, 1, 'L')
     pdf.set_font('Arial', '', 10)
     pdf.cell(0, 6, f'Total de casos analizados: {datos_historicos["total_casos"]:,}', 0, 1)
     pdf.cell(0, 6, f'Casos de dengue grave registrados: {datos_historicos["total_graves"]:,} ({datos_historicos["porcentaje_graves"]:.2f}%)', 0, 1)
